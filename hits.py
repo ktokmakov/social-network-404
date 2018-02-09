@@ -1,11 +1,7 @@
 import collections
 import operator
 from time import time
-from multiprocessing import Pool
-import os
-import math
-import json
-
+import pandas as pd
 
 
 def main(fp):
@@ -14,13 +10,11 @@ def main(fp):
     outnodes = collections.defaultdict(lambda: [])
     innodes = collections.defaultdict(lambda: [])
     usernames ={}
-    likes=  {}
     with open(fp) as lines:
         for line in lines:
             stuff = line.split("\t")
             user_from = stuff[0]
             user_name = stuff[1].strip()
-            likes[user_from] = int(stuff[2].strip())
             usernames[user_from] = user_name
             users_to = set()
             if len(stuff)>3:
@@ -34,7 +28,6 @@ def main(fp):
     oldauthorities = collections.defaultdict(lambda: (len(seen) ** -0.5))
 
     for i in range(150):
-        #print("Iteration %i" % i)
         sumhubs = 0
         sumauth = 0
         newhubs = collections.defaultdict(lambda: 0)
@@ -47,16 +40,13 @@ def main(fp):
         for vertex in seen:
             for hub in innodes[vertex]:
                 newauthorities[vertex] += oldhubs[hub]
-            newauthorities[vertex] += math.sqrt(likes.get(vertex, 0))
             sumauth += newauthorities[vertex] ** 2
         sumhubs = sumhubs ** 0.5
         sumauth = sumauth ** 0.5
-        #print('sumhub,sumauth', sumhubs, sumauth)
         newhubs = {t: newhubs[t] / sumhubs for t in newhubs}
         newauthorities = {t: newauthorities[t] / sumauth for t in newauthorities}
         delta = sum([abs(newhubs[t] - oldhubs[t]) for t in newhubs])
         print("Delta", delta)
-        #plot(oldhubs, oldauthorities, i, len(seen) ** -0.5)
         oldhubs = newhubs
         oldauthorities = newauthorities
 
@@ -79,13 +69,10 @@ def main(fp):
                                  str(u_id),
                                  usernames[u_id.strip()] if u_id.strip() in usernames else 'unknown',
                                  'Responded to %i users' % len(outnodes[u_id]),
-                                 'Got responses from %i users' % len(innodes[u_id]),
-                                "Received %.2f likes " % likes.get(u_id, 0)]) + "\n")
-    #influential_posts = getUsersPosts(open(fp.replace(".graph", "")), [x[0] for x in auth[-10:]])
-    #with open('%s.auth.top10' % fp, 'w') as out:
-    #    for p in influential_posts:
-    #        out.write(json.dumps(p) + "\n")
+                                 'Got responses from %i users' % len(innodes[u_id])]) + "\n")
     print(fp + " Complete")
     return time() - start
 
 
+def read_data():
+    return pd.read_csv('')
